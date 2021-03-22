@@ -157,8 +157,9 @@ class H5FileDatasetInterface(DatasetInterface):
 
     def _create_h5_file(self, f_name, directory_path):
         """Create new h5 file with images from directory."""
-        # Determine total number of images for this file
-        n_samples = self._get_dir_images_count(directory_path)
+        # Determine path to images to add to this file
+        images_path = self._get_dir_images_path(directory_path)
+        n_samples = len(images_path)
         print("Creating h5 file '{}' with {} samples from path '{}'"
               .format(f_name, n_samples, directory_path), flush=True)
         # Create file
@@ -166,7 +167,6 @@ class H5FileDatasetInterface(DatasetInterface):
             out.create_dataset("X", (n_samples, self._images_size, self._images_size, 3), dtype='u1')
             out.create_dataset("Y", (n_samples, 1, 1), dtype='i4')
         # Add content of images to h5 file
-        images_path = self._get_dir_images_path(directory_path)
         self._add_h5_file_content(f_name, images_path)
 
     def _add_h5_file_content(self, f_name, images_path):
@@ -179,6 +179,8 @@ class H5FileDatasetInterface(DatasetInterface):
                 # Open and resize to expected size
                 img = Image.open(img_path)
                 img = img.resize((self._images_size, self._images_size), Image.BILINEAR)
+                if img.mode != "RGB":
+                    img = img.convert('RGB')
                 # Save to h5 file
                 out['X'][idx] = np.asarray(img)
                 # Determine name of this class
@@ -192,23 +194,14 @@ class H5FileDatasetInterface(DatasetInterface):
                 out['Y'][idx] = class_idx
 
     @staticmethod
-    def _get_dir_images_count(dir_path):
-        """Determine number of JPG files in the given directory."""
-        dir_path += "/*"
-        classes_dir = glob.glob(dir_path)
-        images_count = 0
-        for class_dir in classes_dir:
-            images_path = glob.glob(class_dir + '/*.jpg') + glob.glob(class_dir + '/*.JPG')
-            images_count += len(images_path)
-        return images_count
-
-    @staticmethod
     def _get_dir_images_path(dir_path):
         """Return full path to all JPG images in dir_path."""
         dir_path += "/*"
         classes_dir = sorted(glob.glob(dir_path))
+        extensions = ['jpg', 'jpeg', 'png']
         images_path = []
         for class_dir in classes_dir:
-            sub_images_path = glob.glob(class_dir + '/*.jpg') + glob.glob(class_dir + '/*.JPG')
-            images_path.extend(sub_images_path)
+            for ext in extensions:
+                images_path += glob.glob(class_dir + '/*.' + ext) +\
+                               glob.glob(class_dir + '/*.' + ext.upper())
         return images_path
