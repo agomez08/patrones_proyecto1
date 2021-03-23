@@ -1,5 +1,4 @@
 import random
-from PIL import Image
 import glob
 import os
 

@@ -7,6 +7,8 @@ from torch.utils.data import DataLoader, sampler, Dataset
 import numpy as np
 import h5py
 from PIL import Image
+# To attempt to get reproducible results
+np.random.seed(42)
 
 
 class DatasetInterface:
