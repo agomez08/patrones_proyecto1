@@ -1,0 +1,26 @@
+# Install Mozilla Firefox (Chromium consumes too much RAM)
+
+sudo apt update
+sudo apt install firefox
+
+# Disable ZRAM:
+sudo systemctl disable nvzramconfig
+
+# Create 4GB swap file
+sudo fallocate -l 4G /mnt/4GB.swap
+sudo chmod 600 /mnt/4GB.swap
+sudo mkswap /mnt/4GB.swap
+
+# Append the following line to /etc/fstab
+sudo echo "/mnt/4GB.swap swap swap defaults 0 0" >> /etc/fstab
+
+# REBOOT!
+
+# Download Deep Learning Institute's docker (it has all the dependencies required)
+echo "sudo docker run --runtime nvidia -it --rm --network host \
+    --volume ~/nvdli-data:/nvdli-nano/data \
+    --volume /tmp/argus_socket:/tmp/argus_socket \
+    --device /dev/video0 \
+    nvcr.io/nvidia/dli/dli-nano-ai:v2.0.1-r32.5.0" > docker_dli_run.sh
+chmod +x docker_dli_run.sh
+./docker_dli_run.sh
