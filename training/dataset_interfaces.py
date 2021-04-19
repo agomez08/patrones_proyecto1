@@ -55,7 +55,10 @@ class DatasetInterface:
         for idx in np.arange(num_images):
             # Add sub-plot and display the image
             ax = fig.add_subplot(n_rows, 10, idx + 1, xticks=[], yticks=[])
-            img = images[idx] / 2 + 0.5
+            img = images[idx] # / 2 + 0.5
+            img_min = img.min()
+            img_max = img.max()
+            img = (img - img_min) / (img_max - img_min)
             plt.imshow(np.transpose(img, (1, 2, 0)))
             ax.set_title(self._classes_names[labels[idx]])
 
