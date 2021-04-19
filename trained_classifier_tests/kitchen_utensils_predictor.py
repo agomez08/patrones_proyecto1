@@ -11,7 +11,7 @@ import cv2
 classes_names = ['BOTTLE_OPENER', 'DINNER_FORK', 'DINNER_KNIFE', 'FISH_SLICE', 'KITCHEN_KNIFE', 'LADLE',
                  'POTATO_PEELER', 'SPATULA', 'SPOON', 'WHISK']
 NUM_CLASSES = len(classes_names)
-MODEL_FILE_PATH = 'tl_inceptionv3_model.pt'
+MODEL_FILE_PATH = '../training/models/tl_inceptionv3_model_v2.pt'
 SCORE_THRESHOLD = 60
 # Camera resolution parameters
 X_RES = 1280
