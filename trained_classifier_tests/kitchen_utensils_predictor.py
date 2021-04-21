@@ -14,10 +14,11 @@ NUM_CLASSES = len(classes_names)
 MODEL_FILE_PATH = '../training/models/tl_inceptionv3_model_v2.pt'
 SCORE_THRESHOLD = 60
 # Camera resolution parameters
-X_RES = 1280
-Y_RES = 720
+X_RES = 480
+Y_RES = 320
 X_CENTER = X_RES // 2
 
+cam = 'v4l2src device=/dev/video{} ! video/x-raw, width=(int){}, height=(int){}, framerate=(fraction){}/1 ! videoconvert !  video/x-raw, format=(string)BGR ! appsink'.format(0, X_RES, Y_RES, 5)
 
 # Define functions
 def get_runtime_device():
@@ -84,52 +85,86 @@ def get_prediction(model, device, image):
     prob = torch.exp(logsoft_prop).item()
     return 100 * prob, predicted_class
 
+def gstreamer_pipeline(
+    capture_width=1280,
+    capture_height=720,
+    display_width=1280,
+    display_height=720,
+    framerate=60,
+    flip_method=0,
+):
+    return (
+        "nvarguscamerasrc ! "
+        "video/x-raw(memory:NVMM), "
+        "width=(int)%d, height=(int)%d, "
+        "format=(string)NV12, framerate=(fraction)%d/1 ! "
+        "nvvidconv flip-method=%d ! "
+        "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
+        "videoconvert ! "
+        "video/x-raw, format=(string)BGR ! appsink"
+        % (
+            capture_width,
+            capture_height,
+            framerate,
+            flip_method,
+            display_width,
+            display_height,
+        )
+    )
+
 
 def utensils_predictor():
-    """Core function that performs predictions of kitchen utensils based on trained model."""
-    device = get_runtime_device()
-    print("Using device {}".format(device))
-    # Load model
-    model = get_trained_model(MODEL_FILE_PATH, device)
-    # Since we are using our model only for inference, switch to `eval` mode:
-    model.eval()
+	"""Core function that performs predictions of kitchen utensils based on trained model."""
+	device = get_runtime_device()
+	print("Using device {}".format(device))
+	
+	# Load model
+	model = get_trained_model(MODEL_FILE_PATH, device)
+	# Since we are using our model only for inference, switch to `eval` mode:
+	model.eval()
 
-    # Setup camera acquisition
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, X_RES)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Y_RES)
+	# Setup camera acquisition
+	print("Setting up video capture...")
+	cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=2), cv2.CAP_GSTREAMER)
 
-    # Now run live acquisition and prediction
-    start_time = time.time()
-    while True:
-        # Time for FPS calculation
-        loop_time = time.time() - start_time
-        start_time = time.time()
-        fps = 1 / loop_time
+	print("Starting Loop...")
 
-        # Capture new frame
-        ret, frame = cap.read()
+	# Now run live acquisition and prediction
+	start_time = time.time()
+	
+	if cap.isOpened():
+		while True:
+			# Time for FPS calculation
+			loop_time = time.time() - start_time
+			start_time = time.time()
+			fps = 1 / loop_time
 
-        # Perform prediction
-        score_class, pred_class = get_prediction(model, device, frame)
+			# Capture new frame
+			ret, frame = cap.read()
 
-        # When not very certain, better say we don't know
-        if score_class < SCORE_THRESHOLD:
-            pred_class = 'Nothing'
+			# Perform prediction
+			score_class, pred_class = get_prediction(model, device, frame)
 
-        # Overlay on the image the prediction, the score and the FPS
-        cv2.putText(frame, pred_class, (X_CENTER, 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                    (255, 255, 255), 3)
-        cv2.putText(frame, '(SCORE = %.2f)' % score_class, (X_CENTER, 90), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                    (255, 255, 255), 2)
-        cv2.putText(frame, '(FPS = %.2f)' % fps, (X_CENTER, 140), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                    (255, 255, 255), 2)
-        cv2.imshow('Kitchen Utensils Detector', frame)
+			# When not very certain, better say we don't know
+			if score_class < SCORE_THRESHOLD:
+			    pred_class = 'Nothing'
 
-        # Quit when ESC or q are pressed
-        if cv2.waitKey(20) & 0xFF == ord('q'):
-            break
+			# Overlay on the image the prediction, the score and the FPS
+			cv2.putText(frame, pred_class, (X_CENTER, 40), cv2.FONT_HERSHEY_SIMPLEX, 1,
+				    (255, 255, 255), 3)
+			cv2.putText(frame, '(SCORE = %.2f)' % score_class, (X_CENTER, 90), cv2.FONT_HERSHEY_SIMPLEX, 1,
+				    (255, 255, 255), 2)
+			cv2.putText(frame, '(FPS = %.2f)' % fps, (X_CENTER, 140), cv2.FONT_HERSHEY_SIMPLEX, 1,
+				    (255, 255, 255), 2)
+			cv2.imshow('Kitchen Utensils Detector', frame)
 
+			# Quit when ESC or q are pressed
+			if cv2.waitKey(20) & 0xFF == ord('q'):
+				break
+		cap.release()
+		cv2.destroyAllWindows()
+	else:
+        	print("Unable to open camera")
 
 if __name__ == "__main__":
     utensils_predictor()
