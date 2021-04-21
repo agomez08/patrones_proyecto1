@@ -43,15 +43,6 @@ def gstreamer_pipeline(
 
 def show_camera():
 	# To flip the image, modify the flip_method parameter (0 and 2 are the most common)
-	print("releasing camera...")
-	camera = CSICamera(capture_device=0)
-
-	if type(camera) is CSICamera:
-		print("CSI camera detected")
-		print("Ignore 'Exception in thread' tracebacks\n")
-		camera.cap.release()
-
-
 	print(gstreamer_pipeline(flip_method=0))
 	cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
 	if cap.isOpened():
