@@ -80,7 +80,7 @@ OpenCV was installed using the following guide: https://github.com/mdegans/nano_
 <h3>Dataset</h3>
 
 We decided to use the Edinburgh Kitchen Utensils dataset. This dataset has a total of 897 image with 20 classes. Also, in order to prepare the dataset, the following actions were taken:
-- condense categories into a single category. For example, the \textit{Serving Spoon}, \textit{Soup Spoon}, \textit{Tea Spoon}, \textit{Dessert Spoon}, and the \textit{Wooden -- - some categories were dropped
+- condense categories into a single category
 - removed low quality images after a visual inspection
 - images were added using standard google searches of the different utensils. This with the help of the "Download All Images" Google Chrome plugging.
 
