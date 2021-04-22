@@ -73,7 +73,7 @@ sudo echo "/mnt/4GB.swap swap swap defaults 0 0" >> /etc/fstab
 # REBOOT!
 ```
 
-PyTorch was installed using the following steps: https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-8-0-now-available/72048
+PyTorch was installed by following these steps: https://forums.developer.nvidia.com/t/pytorch-for-jetson-version-1-8-0-now-available/72048
 
 OpenCV was installed using the following guide: https://github.com/mdegans/nano_build_opencv
 
