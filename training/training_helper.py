@@ -3,6 +3,23 @@ import numpy as np
 import torch
 
 
+def update_total_corrects(target, predictions, class_correct_list, class_total_list):
+    """Perform update on lists of total and correct predictions based on last run of model."""
+    # Compare predictions against target
+    correct_tensor = predictions.eq(target.data.view_as(predictions))
+    if torch.cuda.is_available():
+        # Bring back to CPU if GPU was being used
+        correct = np.squeeze(correct_tensor.cpu().numpy())
+    else:
+        correct = np.squeeze(correct_tensor.numpy())
+    # For each of the possible targets
+    for i in range(target.size(0)):
+        # Save the number of elements classified correctly and the total number of elements
+        label = target.data[i]
+        class_correct_list[label] += correct[i].item()
+        class_total_list[label] += 1
+
+
 def train_batch(optimizer, model, criterion, inputs, target):
     """Perform one iteration of training over a batch of the dataset."""
     # Start batch with zero gradients
@@ -17,17 +34,22 @@ def train_batch(optimizer, model, criterion, inputs, target):
     # Let the optimizer update coefficients
     optimizer.step()
 
+    # Use logps probabilities to determine the prediction (prediction is class with maximum logps)
+    _, predictions = torch.max(logps, 1)
+
     # Calculate and return batch loss
     batch_loss = loss.item() * inputs.size(0)
 
-    return batch_loss
+    return batch_loss, predictions
 
 
-def train_epoch(optimizer, model, criterion, train_loader, device):
+def train_epoch(num_classes, optimizer, model, criterion, train_loader, device):
     """Perform one epoch iteration of training."""
     # Switch model to training mode
     epoch_loss = 0.0
     model.train()
+    class_correct_list = list(0. for _ in range(num_classes))
+    class_total_list = list(0. for _ in range(num_classes))
     # Run through each of the batches
     for batch_idx, (inputs, target) in enumerate(train_loader):
         # print("DEBUG: Starting TRAINING batch {}".format(batch_idx))
@@ -35,11 +57,17 @@ def train_epoch(optimizer, model, criterion, train_loader, device):
         inputs, target = inputs.to(device), target.to(device)
 
         # Perform training over batch and update training loss
-        batch_loss = train_batch(optimizer, model, criterion, inputs, target)
+        batch_loss, predictions = train_batch(optimizer, model, criterion, inputs, target)
         epoch_loss += batch_loss
 
-    # Return average epoch loss
-    return epoch_loss / len(train_loader.sampler)
+        # Update total count and correct predictions count from this last run
+        update_total_corrects(target, predictions, class_correct_list, class_total_list)
+
+    # Calculate global accuracy
+    global_accuracy = 100. * np.sum(class_correct_list) / np.sum(class_total_list)
+
+    # Return average epoch loss and accuracy for this epoch
+    return epoch_loss / len(train_loader.sampler), global_accuracy
 
 
 def validate_batch(model, criterion, inputs, target):
@@ -49,28 +77,39 @@ def validate_batch(model, criterion, inputs, target):
     # Calculate loss for predictions
     loss = criterion(logps, target)
 
+    # Use logps probabilities to determine the prediction (prediction is class with maximum logps)
+    _, predictions = torch.max(logps, 1)
+
     # Calculate and return batch loss
     validation_loss = loss.item() * inputs.size(0)
 
-    return validation_loss
+    return validation_loss, predictions
 
 
-def validate_epoch(model, criterion, valid_loader, device):
+def validate_epoch(num_classes, model, criterion, valid_loader, device):
     """Perform one epoch iteration of validation."""
     # Switch model to validation mode
     epoch_loss = 0.0
     model.eval()
+    class_correct_list = list(0. for _ in range(num_classes))
+    class_total_list = list(0. for _ in range(num_classes))
     for batch_idx, (inputs, target) in enumerate(valid_loader):
         # print("DEBUG: Starting VALIDATION batch {}".format(batch_idx))
         # Mode tensors to GPU if available
         inputs, target = inputs.to(device), target.to(device)
 
         # Perform validation over batch and update validation loss
-        batch_loss = validate_batch(model, criterion, inputs, target)
+        batch_loss, predictions = validate_batch(model, criterion, inputs, target)
         epoch_loss += batch_loss
 
-    # Return average epoch loss
-    return epoch_loss / len(valid_loader.sampler)
+        # Update total count and correct predictions count from this last run
+        update_total_corrects(target, predictions, class_correct_list, class_total_list)
+
+    # Calculate global accuracy
+    global_accuracy = 100. * np.sum(class_correct_list) / np.sum(class_total_list)
+
+    # Return average epoch loss and accuracy for this epoch
+    return epoch_loss / len(valid_loader.sampler), global_accuracy
 
 
 def test_eval_batch(model, criterion, inputs, target):
@@ -108,19 +147,22 @@ def test_eval(num_classes, model, criterion, test_loader, device):
         batch_loss, predictions = test_eval_batch(model, criterion, inputs, target)
         test_loss += batch_loss
 
+        # Update total count and correct predictions count from this last run
+        update_total_corrects(target, predictions, class_correct_list, class_total_list)
+
         # Compare predictions against target
-        correct_tensor = predictions.eq(target.data.view_as(predictions))
-        if torch.cuda.is_available():
-            # Bring back to CPU if GPU was being used
-            correct = np.squeeze(correct_tensor.cpu().numpy())
-        else:
-            correct = np.squeeze(correct_tensor.numpy())
-        # For each of the possible targets
-        for i in range(target.size(0)):
-            # Save the number of elements classified correctly and the total number of elements
-            label = target.data[i]
-            class_correct_list[label] += correct[i].item()
-            class_total_list[label] += 1
+        # correct_tensor = predictions.eq(target.data.view_as(predictions))
+        # if torch.cuda.is_available():
+        #     # Bring back to CPU if GPU was being used
+        #     correct = np.squeeze(correct_tensor.cpu().numpy())
+        # else:
+        #     correct = np.squeeze(correct_tensor.numpy())
+        # # For each of the possible targets
+        # for i in range(target.size(0)):
+        #     # Save the number of elements classified correctly and the total number of elements
+        #     label = target.data[i]
+        #     class_correct_list[label] += correct[i].item()
+        #     class_total_list[label] += 1
 
     # Determine average testing loss
     test_loss_avg = test_loss / len(test_loader.dataset)
