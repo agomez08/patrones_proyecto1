@@ -1,4 +1,4 @@
-# Tutorial - Kitchen utensils pattern recognition system
+# Tutorial - Kitchen utensils recognition system
 
 Guide for setting, configuring, and using a MIPI-CSI Raspberry Pi v2 camera with the NVIDIA Jetson Nano Developer Kit for the recognition of 10 different types of kitchen utensils.
 
