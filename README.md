@@ -292,7 +292,7 @@ if __name__ == "__main__":
     utensils_predictor()
 ```
 
-After running the Python script, the camera will begin to capture and analyse the objects placed in front of it. If the object is not part of the 10 categories, "Nothing" should be displayed on screen. On the other hand, if the object is part of the 10 categories, the corresponding name should appear on-screen, along with a prediction percentage.
+After running the Python script, the camera will begin to capture and analyze the objects placed in front of it. If the object is not part of the 10 categories, "Nothing" should be displayed on screen. On the other hand, if the object is part of the 10 categories, the corresponding name should appear on-screen, along with a prediction percentage.
 
 <h3>Relevant links</h3>
 
