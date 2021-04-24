@@ -1,6 +1,13 @@
-# Tutorial - Kitchen utensils recognition system
+# Tutorial - Kitchen Utensils Recognition System
 
 Guide for setting, configuring, and using a MIPI-CSI Raspberry Pi v2 camera with the NVIDIA Jetson Nano Developer Kit for the recognition of 10 different types of kitchen utensils.
+
+Key Links: 
+
+- Training Notebook: https://github.com/agomez08/patrones_proyecto1/blob/main/training/tl_inceptionv3.ipynb
+- Python Script for Live Camera predictions: https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/kitchen_utensils_predictor.py
+- Demonstration Video: https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/Video_Funcionamiento_RPI_Pfinal.mp4
+- Scientific Paper Report: https://github.com/agomez08/patrones_proyecto1/blob/main/documentation/RPI_P1_Paper.pdf
 
 <h2>Hardware - Brief description</h2>
 
