@@ -4,10 +4,10 @@ Guide for setting, configuring, and using a MIPI-CSI Raspberry Pi v2 camera with
 
 Key Links: 
 
-- Training Notebook: https://github.com/agomez08/patrones_proyecto1/blob/main/training/tl_inceptionv3.ipynb
-- Python Script for Live Camera predictions: https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/kitchen_utensils_predictor.py
-- Demonstration Video: https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/Video_Funcionamiento_RPI_Pfinal.mp4
-- Scientific Paper Report: https://github.com/agomez08/patrones_proyecto1/blob/main/documentation/RPI_P1_Paper.pdf
+- :notebook: [Training Notebook](https://github.com/agomez08/patrones_proyecto1/blob/main/training/tl_inceptionv3.ipynb)
+- :page_facing_up: [Python Script for Live Camera predictions](https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/kitchen_utensils_predictor.py)
+- :video_camera: [Demonstration Video](https://github.com/agomez08/patrones_proyecto1/blob/main/trained_classifier_tests/Video_Funcionamiento_RPI_Pfinal.mp4)
+- :page_with_curl: [Scientific Paper Report](https://github.com/agomez08/patrones_proyecto1/blob/main/documentation/RPI_P1_Paper.pdf)
 
 <h2>Hardware - Brief description</h2>
 
